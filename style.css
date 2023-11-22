@@ -1,0 +1,47 @@
+
+.seccion {
+  margin-bottom: 30px;
+}
+
+.lista-profesionales,
+.lista-contactos {
+  list-style: none;
+  padding: 0;
+}
+
+.tarjeta-profesional,
+.contacto-item {
+  border: 1px solid #ccc;
+  margin-bottom: 10px;
+  padding: 10px;
+}
+
+.btn-contactar {
+  background-color: #007bff;
+  color: #fff;
+  border: none;
+  padding: 5px 10px;
+  cursor: pointer;
+}
+
+body {
+  transition: background-color 0.5s, color 0.5s;
+}
+
+body.modo-oscuro {
+  background-color: #222;
+  color: #ddd;
+}
+
+.navbar-dark .navbar-toggler-icon {
+  background-color: #ddd;
+}
+
+.btn-dark {
+  background-color: #555;
+  color: #fff;
+}
+
+.btn-dark:hover {
+  background-color: #777;
+}
