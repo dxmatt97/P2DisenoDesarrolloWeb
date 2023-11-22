@@ -55,14 +55,14 @@
 
   <script>
     var profesionalesDisponibles = [
-      { nombre: 'Profesional 1', experiencia: '5 años', puntuacion: 4.8, valorHora: '$50', foto: 'https://img.freepik.com/vector-gratis/ilustracion-dibujos-animados-medico-dibujado-mano_23-2150696182.jpg' },
-      { nombre: 'Profesional 2', experiencia: '8 años', puntuacion: 4.5, valorHora: '$60', foto: 'https://img.freepik.com/vector-premium/doctora-sobre-fondo-blanco-diseno-dibujos-animados_530689-779.jpg' },
-      { nombre: 'Profesional 3', experiencia: '3 años', puntuacion: 4.2, valorHora: '$40', foto: 'https://img.freepik.com/vector-gratis/ilustracion-dibujos-animados-medico-dibujado-mano_23-2150696182.jpg' }
+      { nombre: 'Profesional 1', experiencia: '5 años', puntuacion: 4.8, valorHora: '$12000', foto: 'https://img.freepik.com/vector-gratis/ilustracion-dibujos-animados-medico-dibujado-mano_23-2150696182.jpg' },
+      { nombre: 'Profesional 2', experiencia: '8 años', puntuacion: 4.5, valorHora: '$15000', foto: 'https://img.freepik.com/vector-premium/doctora-sobre-fondo-blanco-diseno-dibujos-animados_530689-779.jpg' },
+      { nombre: 'Profesional 3', experiencia: '3 años', puntuacion: 4.2, valorHora: '$18000', foto: 'https://img.freepik.com/vector-gratis/ilustracion-dibujos-animados-medico-dibujado-mano_23-2150696182.jpg' }
     ];
 
     var contactosRealizados = [
-      { profesional: 'Profesional 1', mensaje: 'Consulta sobre terapia' },
-      { profesional: 'Profesional 2', mensaje: 'Disponibilidad de horarios' }
+      { profesional: 'Profesional 1', mensaje: 'Consulta sobre terapia', cliente: "Cliente 1" },
+      { profesional: 'Profesional 2', mensaje: 'Disponibilidad de horarios', cliente: "Cliente 1" }
     ];
     function cargarProfesionales() {
       var listaProfesionales = $('#listaProfesionales');
@@ -86,12 +86,22 @@
                   <button id="btnModificar" class="btn btn-warning btn-modificar" onclick="modificarProfesional(${index})">Modificar</button>
                   <button id="btnEliminar" class="btn btn-danger btn-eliminar" onclick="bajaProfesional(${index})">Eliminar</button>
                 ` : ''}
-                <button class="btn btn-primary btn-contactar">Contactar</button>
+                ${obtenerTipo() === 'cliente' ? `
+                  <button class="btn btn-primary btn-contactar" onclick="contactarProfesional(${index})">Contactar</button>
+                ` : ''}
+                ${obtenerTipo() === 'profesional' ? `
+                  <button id="btnModificar" class="btn btn-warning btn-modificar" onclick="modificarProfesional(${index})">Modificar</button>
+                ` : ''}
               </div>
             </div>
           </li>
         `;
-        listaProfesionales.append(tarjetaProfesional);
+        if (obtenerTipo() === 'profesional' && (profesional.nombre.toLowerCase() === obtenerUsuario().toLowerCase())) {
+          listaProfesionales.append(tarjetaProfesional);
+        }
+        if (obtenerTipo() !== 'profesional') {
+          listaProfesionales.append(tarjetaProfesional);
+        }
       });
     }
 
@@ -104,12 +114,32 @@
 
       contactosRealizados.forEach(function (contacto) {
         var listItem = `
-              <li class="list-group-item">
-                  <strong>${contacto.profesional}</strong>
-                  <p>Mensaje: ${contacto.mensaje}</p>
-              </li>
+            <li class="list-group-item">
+              <strong>${contacto.profesional}</strong>
+              <p>Mensaje: ${contacto.mensaje}</p>
+            </li>
           `;
         listaContactosContainer.append(listItem);
+      });
+    }
+
+    function cargarContactosClientes() {
+      var listaContactos = $('#listaContactos');
+      listaContactos.empty();
+
+      var listaContactosContainer = $('<ul class="list-group list-group-flush"></ul>');
+      listaContactos.append(listaContactosContainer);
+
+      contactosRealizados.forEach(function (contacto) {
+        if (contacto.profesional.toLowerCase() === obtenerUsuario().toLowerCase()) {
+          var listItem = `
+            <li class="list-group-item">
+              <strong>${contacto.cliente}</strong>
+              <p>Mensaje: ${contacto.mensaje}</p>
+            </li>
+          `;
+          listaContactosContainer.append(listItem);
+        }
       });
     }
 
@@ -163,10 +193,11 @@
               <label for="fotoProfesional" class="form-label">URL de la Foto:</label>
               <input type="text" class="form-control" id="fotoProfesional" required>
             </div>
-
+            ${obtenerTipo() === 'administrativo' ? `
             <div class="col-12">
               <button type="button" class="btn btn-success btn-lg" onclick="altaProfesional()">Alta</button>
             </div>
+            ` : ''}
           </form>
         `;
       $('#app').append(gestionProfesionalesForm);
@@ -205,41 +236,53 @@
       }
     }
 
-    function modificarProfesional(index) {
+    function contactarProfesional(index) {
+      var mensaje = prompt('Ingrese su mensaje para el profesional:');
+      if (mensaje) {
         var profesionalSeleccionado = profesionalesDisponibles[index];
-        var nuevoNombre = $('#nombreProfesional').val();
-        var nuevaExperiencia = $('#experienciaProfesional').val();
-        var nuevaPuntuacion = parseFloat($('#puntuacionProfesional').val());
-        var nuevoValorHora = $('#valorHoraProfesional').val();
-        var nuevaFoto = $('#fotoProfesional').val();
+        var nuevoContacto = { profesional: profesionalSeleccionado.nombre, mensaje: mensaje };
+        contactosRealizados.push(nuevoContacto);
+        cargarContactos();
+      } else {
+        alert('Mensaje vacío. Operación cancelada.');
+      }
+    }
 
-        if (nuevoNombre && nuevaExperiencia && !isNaN(nuevaPuntuacion) && nuevoValorHora && nuevaFoto) {
-          var profesionalModificado = {
-            nombre: nuevoNombre,
-            experiencia: nuevaExperiencia,
-            puntuacion: nuevaPuntuacion,
-            valorHora: nuevoValorHora,
-            foto: nuevaFoto
-          };
-          var confirmacion = confirm('¿Está seguro de modificar este profesional?');
-          if (confirmacion) {
-            profesionalesDisponibles[index] = profesionalModificado;
+    function modificarProfesional(index) {
+      var profesionalSeleccionado = profesionalesDisponibles[index];
+      var nuevoNombre = $('#nombreProfesional').val();
+      var nuevaExperiencia = $('#experienciaProfesional').val();
+      var nuevaPuntuacion = parseFloat($('#puntuacionProfesional').val());
+      var nuevoValorHora = $('#valorHoraProfesional').val();
+      var nuevaFoto = $('#fotoProfesional').val();
 
-            $('#profesionalForm')[0].reset();
-            cargarProfesionales();
+      if (nuevoNombre && nuevaExperiencia && !isNaN(nuevaPuntuacion) && nuevoValorHora && nuevaFoto) {
+        var profesionalModificado = {
+          nombre: nuevoNombre,
+          experiencia: nuevaExperiencia,
+          puntuacion: nuevaPuntuacion,
+          valorHora: nuevoValorHora,
+          foto: nuevaFoto
+        };
+        var confirmacion = confirm('¿Está seguro de modificar este profesional?');
+        if (confirmacion) {
+          profesionalesDisponibles[index] = profesionalModificado;
 
-            alert('Profesional modificado exitosamente.');
+          $('#profesionalForm')[0].reset();
+          cargarProfesionales();
 
-          } else {
-            alert('Operación cancelada.');
-          }
+          alert('Profesional modificado exitosamente.');
+
         } else {
-          $('#nombreProfesional').val(profesionalSeleccionado.nombre);
-          $('#experienciaProfesional').val(profesionalSeleccionado.experiencia);
-          $('#puntuacionProfesional').val(profesionalSeleccionado.puntuacion);
-          $('#valorHoraProfesional').val(profesionalSeleccionado.valorHora);
-          $('#fotoProfesional').val(profesionalSeleccionado.foto);
+          alert('Operación cancelada.');
         }
+      } else {
+        $('#nombreProfesional').val(profesionalSeleccionado.nombre);
+        $('#experienciaProfesional').val(profesionalSeleccionado.experiencia);
+        $('#puntuacionProfesional').val(profesionalSeleccionado.puntuacion);
+        $('#valorHoraProfesional').val(profesionalSeleccionado.valorHora);
+        $('#fotoProfesional').val(profesionalSeleccionado.foto);
+      }
     }
 
     $(document).ready(function () {
@@ -255,6 +298,12 @@
           cargarProfesionales();
           cargarGestionProfesionales();
           break;
+        case "profesional":
+          cargarSeccionProfesionales();
+          cargarProfesionales();
+          cargarSeccionContactos();
+          cargarContactosClientes();
+          cargarGestionProfesionales();
       }
     });
   </script>
